@@ -60,27 +60,62 @@ DB_PASS=password
 
 ### Apache Configuration (.htaccess)
 
-The main `.htaccess` file in your public directory handles URL rewriting:
+#### Root Directory .htaccess (public_html)
+
+This configuration is for the root directory (like public_html) that handles multiple projects:
+
+```apache
+# Main .htaccess file in public_html directory
+
+# Enable URL rewriting
+RewriteEngine On
+RewriteBase /
+
+# Handle existing projects (directories with their own .htaccess files)
+# This allows each project to manage its own routing
+RewriteCond %{REQUEST_URI} ^/([^/]+)
+RewriteCond %{DOCUMENT_ROOT}/$1 -d
+RewriteCond %{DOCUMENT_ROOT}/$1/.htaccess -f
+# Skip remaining rules for valid projects with .htaccess files
+RewriteRule ^([^/]+) $1 [L]
+
+# Handle non-existent projects - redirect to index.html
+# This is triggered when someone tries to access a project folder that doesn't exist
+RewriteCond %{REQUEST_URI} ^/([^/]+)/?$
+RewriteCond %{DOCUMENT_ROOT}/$1 !-d
+RewriteRule ^ /index.html [L]
+
+# Standard handling for other URLs
+# If the request isn't for an actual file or directory
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+# Send it to your main index.php file
+RewriteRule ^(.*)$ index.php [L]
+
+# Set default index files
+DirectoryIndex index.php index.html
+
+# Additional security settings
+# Prevent directory listing
+Options -Indexes
+
+# Set default character set
+AddDefaultCharset UTF-8
+```
+
+#### Project .htaccess
+
+The `.htaccess` file inside your individual project directory:
 
 ```apache
 # Enable URL rewriting
 RewriteEngine On
 RewriteBase /
 
-# Handle existing projects with their own .htaccess
-RewriteCond %{REQUEST_URI} ^/([^/]+)
-RewriteCond %{DOCUMENT_ROOT}/$1 -d
-RewriteCond %{DOCUMENT_ROOT}/$1/.htaccess -f
-RewriteRule ^([^/]+) $1 [L]
-
-# Handle non-existent projects - redirect to index.html
-RewriteCond %{REQUEST_URI} ^/([^/]+)/?$
-RewriteCond %{DOCUMENT_ROOT}/$1 !-d
-RewriteRule ^ /index.html [L]
-
-# For all other requests that aren't files or directories
+# If the request isn't for an actual file or directory
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
+# Send it to your project's index.php file
 RewriteRule ^(.*)$ index.php [L]
 ```
 
