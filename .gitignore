@@ -1,0 +1,7 @@
+# Custom
+.idea/
+local-deploy.sh
+
+
+.env
+vendor/
