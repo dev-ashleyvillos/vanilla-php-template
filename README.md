@@ -110,13 +110,37 @@ The `.htaccess` file inside your individual project directory:
 ```apache
 # Enable URL rewriting
 RewriteEngine On
-RewriteBase /
 
-# If the request isn't for an actual file or directory
+# If the requested file or directory exists, serve it directly
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-# Send it to your project's index.php file
-RewriteRule ^(.*)$ index.php [L]
+
+# Otherwise, redirect all requests to index.php
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Set default index file
+DirectoryIndex index.php
+
+# Prevent directory listing
+Options -Indexes
+
+# Set default character set
+AddDefaultCharset UTF-8
+
+# Set security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "no-referrer-when-downgrade"
+</IfModule>
+
+# PHP settings
+<IfModule mod_php7.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_value error_log logs/php_errors.log
+</IfModule>
 ```
 
 This configuration:
